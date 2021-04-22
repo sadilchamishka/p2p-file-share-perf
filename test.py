@@ -2,14 +2,18 @@ import random
 import os
 import time
 import sys
+from utils import query_builder
+
+with open("demo.log","w") as f1:
+    f1.truncate()
 
 args = sys.argv[1:]
 nodeId = int(args[0])
-query = args[1]
+query = " ".join(args[1:])
 port = 5500 + nodeId
 
-search_query = f"00XX SER 127.0.1.1 {port} {query} 3"
-command = f"echo '{search_query}' | nc -u 127.0.1.1 {port} &"
+request = query_builder("SER", ["127.0.1.1",port, query, 3]).decode('utf-8')
+command = f"echo '{request}' | nc -u 127.0.1.1 {port} &"
 
 os.system(command)
 time.sleep(5)
@@ -30,7 +34,7 @@ for line in logs:
     if f"to start search film {query}" in line:
         start_time = float(line.split(' ')[-1])
     
-    if end_time == 0 and f"Found {query}" in line:
+    if end_time == 0 and f"Response got for film {query}" in line:
         end_time = float(line.split(' ')[-1])
     
     if f"to search film {query}" in line:
@@ -46,7 +50,11 @@ for line in logs:
         if hops < min_hops:
             min_hops = hops
 
-print("Latency ", (end_time-start_time)*1000)
+latency = (end_time-start_time)*1000
+if latency < 0:
+    print("Resource Not Found")
+else:
+    print("Latency ", (end_time-start_time)*1000, " miliseconds")
 print("no_requests ", no_requests)
 print("no_forwards ", no_forwards)
 print("no_resolves ", no_resolves)

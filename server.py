@@ -59,25 +59,26 @@ class UDPServer:
             udp_send_recv(addr[0], addr[1], response, recieve=False)
 
         elif tokens[1] == "SER":
-            hops = int(tokens[5])
+            hops = int(tokens[-1])
+            file_name = " ".join(tokens[4:-1])
             if hops==3:
-                logging.info("Request recieved to start search film %s from node%s to %s at time %s", tokens[4], tokens[3][-1], self.name, str(time.time()))
+                logging.info("Request recieved to start search film %s from node%s to %s at time %s", file_name, tokens[3][-1], self.name, str(time.time()))
                 #logging.info("%s Started %s at time %s", self.name, tokens[4], str(time.time()))
             else:
-                logging.info("Request recieved to search film %s from node%s to %s", tokens[4], tokens[3][-1], self.name)
+                logging.info("Request recieved to search film %s from node%s to %s", file_name, tokens[3][-1], self.name)
                 #logging.info("%s Requested %s", self.name, tokens[4])
-            files_found, file_names = search_file(tokens[4])
+            files_found, file_names = search_file(file_name)
 
             if files_found > 0:
-                logging.info("Request resolved for film %s by %s after hop count of %s", tokens[4],  self.name, 3-hops)
+                logging.info("Request resolved for film %s by %s after hop count of %s", file_name,  self.name, 3-hops)
                 response = query_builder("SEROK", [files_found, cfg.FlaskServer['ip'], cfg.FlaskServer['port'], hops, file_names])
                 udp_send_recv(tokens[2], tokens[3], response, recieve=False)
 
             elif hops > 0:
-                request = query_builder("SER", [tokens[2], tokens[3], tokens[4], hops-1])
+                request = query_builder("SER", [tokens[2], tokens[3], file_name, hops-1])
                 for node in self.routing_table.get():
                     udp_send_recv(node[0], node[1], request, recieve=False)
-                    logging.info("Request for the film %s is Forwarded by %s to node%s", tokens[4], self.name, node[1][-1])
+                    logging.info("Request for the film %s is Forwarded by %s to node%s", file_name, self.name, node[1][-1])
         
         elif tokens[1] == "SEROK":
             dir = cfg.Application['dir'] 
