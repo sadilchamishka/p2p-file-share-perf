@@ -1,0 +1,4 @@
+art==5.1
+Flask==1.1.1
+PyInquirer==1.0.3
+tqdm
