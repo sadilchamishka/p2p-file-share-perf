@@ -28,3 +28,8 @@ foo@bar:~/p2p-file-share$ make join
 ```console
 foo@bar:~/p2p-file-share$ make clear
 ```
+
+
+### Leave a node
+nc -u 127.0.1.1 5501
+0028 LEAVE 127.0.1.1 5501
